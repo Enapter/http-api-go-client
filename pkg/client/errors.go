@@ -1,4 +1,4 @@
-package publichttp
+package client
 
 import (
 	"fmt"
