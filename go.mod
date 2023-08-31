@@ -1,3 +1,3 @@
-module github.com/Enapter/go-http-api
+module github.com/Enapter/http-api-go-client
 
 go 1.21.0

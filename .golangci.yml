@@ -69,7 +69,7 @@ linters-settings:
   lll:
     line-length: 110
   gci:
-    local-prefixes: github.com/enapter/go-http-api
+    local-prefixes: github.com/enapter/http-api-go-client
 
 issues:
   exclude-rules:
