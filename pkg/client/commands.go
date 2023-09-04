@@ -97,7 +97,7 @@ func (c *CommandsAPI) execute(
 		return nil, fmt.Errorf("marshal body: %w", err)
 	}
 
-	const path = "/api/v1/execute"
+	const path = "/commands/v1/execute"
 	req, err := c.client.NewRequestWithContext(ctx, http.MethodPost, path, queryBody)
 	if err != nil {
 		return nil, fmt.Errorf("create request: %w", err)
