@@ -21,6 +21,7 @@ type DevicesQuery struct {
 	ExpandProperties   bool
 	ExpandConnectivity bool
 	FilterTypeIn       []DeviceType
+	FilterDeviceIDIn   []string
 }
 
 type DeviceType string
@@ -71,6 +72,10 @@ func (a *AssetsAPI) Devices(
 	}
 	if len(query.FilterTypeIn) != 0 {
 		values.Set("filter[type_in]", a.encodeTypes(query.FilterTypeIn))
+	}
+	if len(query.FilterDeviceIDIn) != 0 {
+		values.Set("filter[device_id_in]",
+			strings.Join(query.FilterDeviceIDIn, ","))
 	}
 	req.URL.RawQuery = values.Encode()
 
