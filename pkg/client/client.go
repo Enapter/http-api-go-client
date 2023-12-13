@@ -20,6 +20,7 @@ type Client struct {
 	// Services used for talking to different parts of the Enapter API.
 	Commands   CommandsAPI
 	Blueprints BlueprintsAPI
+	Assets     AssetsAPI
 }
 
 func NewClient(httpClient *http.Client) *Client {
@@ -43,6 +44,7 @@ func NewClientWithURL(httpClient *http.Client, baseURL string) (*Client, error) 
 	c := &Client{baseURL: u, client: httpClient}
 	c.Commands = CommandsAPI{client: c}
 	c.Blueprints = BlueprintsAPI{client: c}
+	c.Assets = AssetsAPI{client: c}
 	return c, nil
 }
 
