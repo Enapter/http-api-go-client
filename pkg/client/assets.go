@@ -10,18 +10,28 @@ import (
 	"time"
 )
 
+const devicesBasePath = "/api/v1/devices"
+
 type AssetsAPI struct {
 	client *Client
 }
 
+type ExpandDeviceParams struct {
+	Manifest     bool
+	Properties   bool
+	Connectivity bool
+}
+
 type DevicesQuery struct {
-	PageToken          string
-	PageSize           int
-	ExpandManifest     bool
-	ExpandProperties   bool
-	ExpandConnectivity bool
-	FilterTypeIn       []DeviceType
-	FilterDeviceIDIn   []string
+	PageToken    string
+	PageSize     int
+	FilterTypeIn []DeviceType
+	Expand       ExpandDeviceParams
+}
+
+type DeviceByIDQuery struct {
+	ID     string
+	Expand ExpandDeviceParams
 }
 
 type DeviceType string
@@ -36,6 +46,11 @@ type DevicesResponse struct {
 	Devices       []Device `json:"devices"`
 	Errors        []Error  `json:"errors"`
 	NextPageToken string   `json:"next_page_token"`
+}
+
+type DeviceByIDResponse struct {
+	Device Device  `json:"device"`
+	Errors []Error `json:"errors"`
 }
 
 type Device struct {
@@ -54,7 +69,7 @@ type DeviceConnectivity struct {
 func (a *AssetsAPI) Devices(
 	ctx context.Context, query DevicesQuery,
 ) (DevicesResponse, error) {
-	const path = "/api/v1/devices"
+	const path = devicesBasePath
 	req, err := a.client.NewRequestWithContext(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return DevicesResponse{}, fmt.Errorf("create request: %w", err)
@@ -67,15 +82,11 @@ func (a *AssetsAPI) Devices(
 	if query.PageSize != 0 {
 		values.Set("page_size", strconv.Itoa(query.PageSize))
 	}
-	if expand := a.encodeExpand(query); len(expand) != 0 {
-		values.Set("expand", a.encodeExpand(query))
+	if expand := a.encodeExpand(query.Expand); len(expand) != 0 {
+		values.Set("expand", expand)
 	}
 	if len(query.FilterTypeIn) != 0 {
 		values.Set("filter[type_in]", a.encodeTypes(query.FilterTypeIn))
-	}
-	if len(query.FilterDeviceIDIn) != 0 {
-		values.Set("filter[device_id_in]",
-			strings.Join(query.FilterDeviceIDIn, ","))
 	}
 	req.URL.RawQuery = values.Encode()
 
@@ -93,18 +104,47 @@ func (a *AssetsAPI) Devices(
 	return response, nil
 }
 
-func (a *AssetsAPI) encodeExpand(query DevicesQuery) string {
-	var expand []string
-	if query.ExpandManifest {
-		expand = append(expand, "manifest")
+func (a *AssetsAPI) DeviceByID(
+	ctx context.Context, query DeviceByIDQuery,
+) (DeviceByIDResponse, error) {
+	path := devicesBasePath + "/" + query.ID
+	req, err := a.client.NewRequestWithContext(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return DeviceByIDResponse{}, fmt.Errorf("create request: %w", err)
 	}
-	if query.ExpandProperties {
-		expand = append(expand, "properties")
+
+	values := req.URL.Query()
+	if expand := a.encodeExpand(query.Expand); len(expand) != 0 {
+		values.Set("expand", expand)
 	}
-	if query.ExpandConnectivity {
-		expand = append(expand, "connectivity")
+	req.URL.RawQuery = values.Encode()
+
+	resp, err := a.client.Do(req)
+	if err != nil {
+		return DeviceByIDResponse{}, fmt.Errorf("do request: %w", err)
 	}
-	return strings.Join(expand, ",")
+	defer resp.Body.Close()
+
+	var response DeviceByIDResponse
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		return DeviceByIDResponse{}, fmt.Errorf("unmarshal response: %w", err)
+	}
+
+	return response, nil
+}
+
+func (a *AssetsAPI) encodeExpand(expand ExpandDeviceParams) string {
+	var list []string
+	if expand.Manifest {
+		list = append(list, "manifest")
+	}
+	if expand.Properties {
+		list = append(list, "properties")
+	}
+	if expand.Connectivity {
+		list = append(list, "connectivity")
+	}
+	return strings.Join(list, ",")
 }
 
 func (a *AssetsAPI) encodeTypes(types []DeviceType) string {
