@@ -10,8 +10,6 @@ import (
 	"time"
 )
 
-const devicesBasePath = "/api/v1/devices"
-
 type AssetsAPI struct {
 	client *Client
 }
@@ -69,7 +67,7 @@ type DeviceConnectivity struct {
 func (a *AssetsAPI) Devices(
 	ctx context.Context, query DevicesQuery,
 ) (DevicesResponse, error) {
-	const path = devicesBasePath
+	const path = "/assets/v1/devices"
 	req, err := a.client.NewRequestWithContext(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return DevicesResponse{}, fmt.Errorf("create request: %w", err)
@@ -107,7 +105,7 @@ func (a *AssetsAPI) Devices(
 func (a *AssetsAPI) DeviceByID(
 	ctx context.Context, query DeviceByIDQuery,
 ) (DeviceByIDResponse, error) {
-	path := devicesBasePath + "/" + query.ID
+	path := "/assets/v1/devices/" + query.ID
 	req, err := a.client.NewRequestWithContext(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return DeviceByIDResponse{}, fmt.Errorf("create request: %w", err)

@@ -14,7 +14,7 @@ type BlueprintsAPI struct {
 func (b *BlueprintsAPI) Download(
 	ctx context.Context, blueprintID string,
 ) ([]byte, error) {
-	const path = "/api/v1/download"
+	const path = "/blueprints/v1/download"
 	req, err := b.client.NewRequestWithContext(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, fmt.Errorf("create request: %w", err)
